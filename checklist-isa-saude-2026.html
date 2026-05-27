@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISA Saúde — Checklist Home Care 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rosa:#ED1E79; --rosa-l:#FDE8F3;
+  --turq:#00D2D4; --turq-l:#E0FAFA;
+  --azul:#233E72; --azul-m:#2d4f90; --azul-l:#EEF2F9;
+  --cinza:#F1F1F1; --bord:#DCDCDC;
+  --white:#fff; --txt:#1A2540; --muted:#6B7280;
+  --green:#059669; --green-bg:#D1FAE5;
+  --red:#DC2626;   --red-bg:#FEE2E2;
+  --pur:#7C3AED;   --pur-bg:#EDE9FE;
+  --warn:#D97706;  --warn-bg:#FEF3C7;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--cinza);color:var(--txt);min-height:100vh;}
+
+/* ── HEADER ── */
+.header{background:var(--azul);position:sticky;top:0;z-index:200;border-bottom:4px solid var(--turq);box-shadow:0 4px 24px rgba(35,62,114,.35);}
+.header-inner{max-width:1320px;margin:0 auto;padding:0 28px;height:80px;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+.logo-text{display:flex;flex-direction:column;gap:1px;flex-shrink:0;line-height:1;}
+.logo-text .isa{font-family:'Montserrat',sans-serif;font-size:36px;font-weight:900;color:var(--turq);letter-spacing:5px;line-height:1;}
+.logo-text .saude{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:6px;color:var(--rosa);text-align:center;}
+.header-doc{text-align:right;}
+.header-doc .doc-label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--turq);}
+.header-doc .doc-title{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;color:#fff;line-height:1.3;margin-top:2px;}
+.header-doc .doc-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;}
+
+/* ── TOOLBAR ── */
+.toolbar{background:var(--azul-m);padding:10px 28px;border-bottom:2px solid var(--turq);}
+.toolbar-inner{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.tb-btn{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:.4px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap;}
+.tb-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.tb-btn:active{transform:translateY(0);}
+.tb-rosa{background:var(--rosa);color:#fff;}
+.tb-turq{background:var(--turq);color:var(--azul);}
+.tb-green{background:var(--green);color:#fff;}
+.tb-warn{background:var(--warn);color:#fff;}
+.tb-ghost{background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);}
+.tb-ghost:hover{background:rgba(255,255,255,.25);}
+.tb-sep{width:1px;height:28px;background:rgba(255,255,255,.2);margin:0 4px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;right:28px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast-item{background:var(--azul);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);border-left:4px solid var(--turq);animation:slideIn .3s ease;display:flex;align-items:center;gap:8px;}
+.toast-item.success{border-color:var(--green);}
+.toast-item.error{border-color:var(--red);}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── FILTRO ── */
+.filter-bar{background:var(--white);border-bottom:1px solid var(--bord);padding:14px 28px;}
+.filter-inner{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.filter-label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:800;color:var(--azul);letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;}
+.filter-btn{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;border:2px solid var(--bord);background:var(--white);color:var(--muted);cursor:pointer;transition:all .18s;}
+.filter-btn:hover{border-color:var(--turq);color:var(--turq);}
+.filter-btn.active{background:var(--azul);color:#fff;border-color:var(--azul);}
+.filter-btn.f-sim.active{background:var(--green);border-color:var(--green);}
+.filter-btn.f-nao.active{background:var(--red);border-color:var(--red);}
+.filter-btn.f-na.active{background:var(--pur);border-color:var(--pur);}
+.filter-btn.f-pend.active{background:var(--warn);border-color:var(--warn);}
+.search-wrap{margin-left:auto;position:relative;}
+.search-wrap input{border:1.5px solid var(--bord);border-radius:8px;padding:7px 12px 7px 34px;font-size:13px;font-family:'Inter',sans-serif;color:var(--txt);background:var(--cinza);outline:none;width:220px;transition:all .2s;}
+.search-wrap input:focus{border-color:var(--turq);background:#fff;width:280px;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;}
+
+/* ── ID BAR ── */
+.id-bar{background:var(--white);border-bottom:1px solid var(--bord);padding:18px 28px;}
+.id-bar-inner{max-width:1320px;margin:0 auto;}
+.id-bar h2{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--azul);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.id-bar h2::before{content:'';width:4px;height:14px;background:var(--rosa);border-radius:2px;}
+.id-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.id-field{display:flex;flex-direction:column;gap:3px;}
+.id-field label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;}
+.id-field input{border:1.5px solid var(--bord);border-radius:7px;padding:7px 11px;font-size:13px;font-family:'Inter',sans-serif;color:var(--txt);background:var(--cinza);outline:none;transition:all .2s;}
+.id-field input:focus{border-color:var(--turq);background:#fff;}
+
+/* ── PROGRESS ── */
+.prog-bar{background:var(--white);padding:12px 28px;border-bottom:1px solid var(--bord);}
+.prog-inner{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:16px;}
+.pills{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;}
+.pill{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all .18s;}
+.pill:hover{transform:scale(1.05);}
+.pill.sim{background:var(--green-bg);color:var(--green);}
+.pill.nao{background:var(--red-bg);color:var(--red);}
+.pill.na{background:var(--pur-bg);color:var(--pur);}
+.pill.tot{background:var(--azul-l);color:var(--azul);}
+.pill.pend{background:var(--warn-bg);color:var(--warn);}
+.prog-track{flex:1;height:10px;background:var(--bord);border-radius:5px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--turq),var(--rosa));border-radius:5px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.prog-pct{font-family:'Montserrat',sans-serif;font-size:17px;font-weight:900;color:var(--azul);min-width:48px;text-align:right;}
+
+/* ── ACTIONS ── */
+.actions{max-width:1320px;margin:0 auto;padding:16px 28px 0;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
+.btn{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:.4px;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.15);}
+.btn:active{transform:translateY(0);}
+.btn-out{background:var(--white);color:var(--azul);border:2px solid var(--azul);}
+.btn-out:hover{background:var(--azul);color:#fff;}
+.btn-pri{background:var(--rosa);color:#fff;}
+.btn-pri:hover{background:#c8166a;}
+
+/* ── MAIN ── */
+.main{max-width:1320px;margin:18px auto 0;padding:0 28px 40px;}
+
+/* ── SEÇÃO ── */
+.section{margin-bottom:16px;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(35,62,114,.08);border:1px solid var(--bord);background:var(--white);transition:box-shadow .2s;}
+.section:hover{box-shadow:0 4px 20px rgba(35,62,114,.12);}
+.sec-hdr{background:var(--azul);padding:13px 20px;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;border-left:5px solid var(--rosa);transition:background .2s;}
+.sec-hdr:hover{background:var(--azul-m);}
+.sec-hdr-l{display:flex;align-items:center;gap:10px;}
+.sec-num{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:800;background:var(--rosa);color:#fff;padding:3px 9px;border-radius:4px;}
+.sec-ttl{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:#fff;}
+.sec-chev{color:rgba(255,255,255,.6);font-size:15px;transition:transform .3s;}
+.section.collapsed .sec-chev{transform:rotate(-90deg);}
+.section.collapsed .sec-body{display:none;}
+.sec-prog{font-size:11px;color:rgba(255,255,255,.75);background:rgba(0,0,0,.2);padding:2px 10px;border-radius:10px;font-weight:600;}
+
+/* ── SUBSEÇÃO ── */
+.subsec{border-top:1px solid var(--cinza);}
+.sub-hdr{background:var(--azul-l);padding:8px 20px;border-bottom:1px solid var(--bord);display:flex;align-items:center;gap:8px;}
+.sub-dot{width:8px;height:8px;border-radius:50%;background:var(--turq);flex-shrink:0;}
+.sub-ttl{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:800;color:var(--azul);letter-spacing:.7px;text-transform:uppercase;}
+
+/* ── TABELA ── */
+table{width:100%;border-collapse:collapse;}
+.t-head th{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:800;color:rgba(255,255,255,.85);letter-spacing:.7px;text-transform:uppercase;padding:9px 12px;text-align:left;background:var(--azul);border-bottom:3px solid var(--turq);}
+.t-head th.c{text-align:center;}
+tr.row{border-bottom:1px solid var(--cinza);transition:background .1s;}
+tr.row:last-child{border-bottom:none;}
+tr.row:nth-child(odd){background:var(--white);}
+tr.row:nth-child(even){background:#FAFAFA;}
+tr.row:hover{background:var(--turq-l);}
+tr.row.ok{background:var(--green-bg)!important;}
+tr.row.no{background:var(--red-bg)!important;}
+tr.row.na{background:var(--pur-bg)!important;}
+tr.row.hidden-row{display:none;}
+td{padding:9px 12px;font-size:12.5px;vertical-align:middle;}
+td.num{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:800;color:var(--azul);white-space:nowrap;width:60px;}
+td.tip{width:50px;text-align:center;}
+.badge{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;}
+.badge.R{background:#DBEAFE;color:#1D4ED8;}
+.badge.M{background:#D1FAE5;color:#065F46;}
+td.req{line-height:1.5;}
+td.req .ref{font-size:11px;color:var(--muted);font-style:italic;display:block;margin-top:2px;}
+td.chk{width:54px;text-align:center;}
+.cbtn{width:34px;height:34px;border-radius:7px;border:2px solid var(--bord);background:var(--white);cursor:pointer;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto;transition:all .15s;font-family:'Montserrat',sans-serif;}
+.cbtn:hover{transform:scale(1.12);border-color:var(--turq);}
+.cbtn.sim{border-color:var(--green);background:var(--green);color:#fff;}
+.cbtn.nao{border-color:var(--red);background:var(--red);color:#fff;}
+.cbtn.na{border-color:var(--pur);background:var(--pur);color:#fff;font-size:10px;}
+td.obs input{width:100%;min-width:150px;border:1.5px solid var(--bord);border-radius:6px;padding:6px 9px;font-size:12px;font-family:'Inter',sans-serif;color:var(--txt);background:transparent;outline:none;transition:all .15s;}
+td.obs input:focus{border-color:var(--turq);background:#fff;}
+
+/* ── ARQUIVOS SALVOS ── */
+.arquivos-panel{position:fixed;right:0;top:0;height:100vh;width:380px;background:var(--white);box-shadow:-8px 0 40px rgba(0,0,0,.15);z-index:300;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
+.arquivos-panel.open{transform:translateX(0);}
+.arq-header{background:var(--azul);padding:20px 20px 16px;border-bottom:3px solid var(--turq);}
+.arq-header h3{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;}
+.arq-header p{font-size:11px;color:rgba(255,255,255,.55);margin-top:4px;}
+.arq-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:20px;cursor:pointer;margin-left:auto;}
+.arq-body{flex:1;overflow-y:auto;padding:16px;}
+.arq-empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.arq-empty .icon{font-size:40px;margin-bottom:12px;}
+.arq-item{border:1.5px solid var(--bord);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .18s;}
+.arq-item:hover{border-color:var(--turq);background:var(--turq-l);}
+.arq-item.ativo{border-color:var(--turq);background:var(--turq-l);}
+.arq-item-ttl{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--azul);}
+.arq-item-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.arq-item-prog{margin-top:8px;}
+.arq-item-bar{height:5px;background:var(--bord);border-radius:3px;overflow:hidden;margin-top:3px;}
+.arq-item-fill{height:100%;background:linear-gradient(90deg,var(--turq),var(--rosa));border-radius:3px;}
+.arq-item-actions{display:flex;gap:6px;margin-top:10px;}
+.arq-mini-btn{font-size:10px;font-weight:700;font-family:'Montserrat',sans-serif;padding:4px 10px;border-radius:5px;border:none;cursor:pointer;transition:all .15s;}
+.arq-mini-btn.load{background:var(--azul);color:#fff;}
+.arq-mini-btn.del{background:var(--red-bg);color:var(--red);}
+.arq-mini-btn:hover{opacity:.85;}
+.arq-footer{padding:14px 16px;border-top:1px solid var(--bord);}
+.arq-novo-btn{width:100%;padding:11px;background:var(--turq);color:var(--azul);font-family:'Montserrat',sans-serif;font-size:12px;font-weight:800;border:none;border-radius:8px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.arq-novo-btn:hover{background:#00b8ba;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:299;opacity:0;pointer-events:none;transition:opacity .3s;}
+.overlay.show{opacity:1;pointer-events:all;}
+
+/* ── MODAL ASSINATURA ── */
+.modal{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal.show{opacity:1;pointer-events:all;}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.5);}
+.modal-box{position:relative;background:var(--white);border-radius:16px;padding:28px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.modal-box h3{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:800;color:var(--azul);margin-bottom:6px;}
+.modal-box p{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.sig-canvas{border:2px solid var(--bord);border-radius:10px;cursor:crosshair;touch-action:none;width:100%;background:#fafafa;}
+.modal-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;}
+.m-btn{font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;padding:9px 20px;border-radius:8px;border:none;cursor:pointer;transition:all .18s;}
+.m-btn.pri{background:var(--rosa);color:#fff;}
+.m-btn.sec{background:var(--cinza);color:var(--txt);}
+.m-btn:hover{opacity:.88;}
+
+/* ── MODAL QR ── */
+.qr-modal-box{text-align:center;}
+.qr-modal-box h3{margin-bottom:4px;}
+#qr-container{display:flex;justify-content:center;margin:20px 0;}
+.qr-url{font-size:11px;color:var(--muted);word-break:break-all;margin-bottom:10px;}
+
+/* ── AUTO-SAVE indicator ── */
+.autosave-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── LEGENDA ── */
+.legenda{max-width:1320px;margin:10px auto 0;padding:0 28px 28px;}
+.leg-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--white);border:1px solid var(--bord);border-radius:10px;padding:12px 20px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.leg-lbl{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:800;color:var(--azul);letter-spacing:1px;text-transform:uppercase;}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.leg-d{width:10px;height:10px;border-radius:3px;}
+
+/* ── FOOTER ── */
+.footer{background:var(--azul);border-top:4px solid var(--turq);padding:16px 28px;text-align:center;margin-top:10px;}
+.footer p{font-size:11px;color:rgba(255,255,255,.4);}
+.footer strong{color:rgba(255,255,255,.75);}
+
+/* ── SIG salva ── */
+.sig-preview{margin-top:12px;text-align:center;}
+.sig-preview img{border:1px solid var(--bord);border-radius:8px;max-width:100%;}
+.sig-info{font-size:11px;color:var(--muted);margin-top:4px;}
+
+@media print{.header,.toolbar,.filter-bar,.actions,.prog-bar,.arquivos-panel,.overlay,.toast{display:none!important;}.main{padding:0;margin:0;}}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══════════════════════════════════════════ -->
+<div class="header">
+  <div class="header-inner">
+    <div class="logo-text">
+      <span class="isa">ISA</span>
+      <span class="saude">SAÚDE</span>
+    </div>
+    <div class="header-doc">
+      <div class="doc-label">Lista de Verificação</div>
+      <div class="doc-title">Apoio e Assistência ao Paciente em Domicílio</div>
+      <div class="doc-sub">Home Care &nbsp;·&nbsp; <strong style="color:var(--turq)">Versão 2026</strong> &nbsp;·&nbsp; <span class="autosave-dot"></span><span id="autosave-txt" style="color:rgba(255,255,255,.5);font-size:11px;">Salvamento automático</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOOLBAR ═══════════════════════════════════════════ -->
+<div class="toolbar">
+  <div class="toolbar-inner">
+    <button class="tb-btn tb-turq" onclick="abrirArquivos()">🗂 Arquivos Salvos</button>
+    <button class="tb-btn tb-green" onclick="salvarAgora()">💾 Salvar</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn tb-rosa" onclick="exportarExcel()">📊 Exportar Excel</button>
+    <button class="tb-btn tb-ghost" onclick="window.print()">🖨 PDF / Imprimir</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn tb-warn" onclick="abrirAssinatura()">✍️ Assinar</button>
+    <button class="tb-btn tb-ghost" onclick="abrirQR()">📷 QR Code</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn tb-ghost" onclick="expandAll()">↕ Expandir</button>
+    <button class="tb-btn tb-ghost" onclick="collapseAll()">↕ Recolher</button>
+  </div>
+</div>
+
+<!-- ═══ FILTROS ════════════════════════════════════════════ -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <span class="filter-label">Filtrar:</span>
+    <button class="filter-btn active" onclick="filtrar('todos',this)">Todos</button>
+    <button class="filter-btn f-sim" onclick="filtrar('sim',this)">✓ Conformes</button>
+    <button class="filter-btn f-nao" onclick="filtrar('nao',this)">✗ Não Conformes</button>
+    <button class="filter-btn f-na"  onclick="filtrar('na',this)">◌ N/A</button>
+    <button class="filter-btn f-pend" onclick="filtrar('pend',this)">⏳ Pendentes</button>
+    <button class="filter-btn" onclick="filtrar('R',this)">R Obrigatórios</button>
+    <button class="filter-btn" onclick="filtrar('M',this)">M Melhoria</button>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Buscar requisito…" oninput="buscar(this.value)">
+    </div>
+  </div>
+</div>
+
+<!-- ═══ IDENTIFICAÇÃO ══════════════════════════════════════ -->
+<div class="id-bar">
+  <div class="id-bar-inner">
+    <h2>Identificação do Prestador</h2>
+    <div class="id-grid">
+      <div class="id-field"><label>Nome da Entidade</label><input id="f-entidade" type="text" placeholder="Razão social / nome fantasia" oninput="autoSave()"></div>
+      <div class="id-field"><label>Diretor Técnico</label><input id="f-diretor" type="text" placeholder="Nome completo" oninput="autoSave()"></div>
+      <div class="id-field"><label>Conselho Regional</label><input id="f-conselho" type="text" placeholder="CRM / COREN / etc." oninput="autoSave()"></div>
+      <div class="id-field"><label>Data da Auditoria</label><input id="f-data" type="date" oninput="autoSave()"></div>
+      <div class="id-field"><label>Auditor Responsável</label><input id="f-auditor" type="text" placeholder="Nome do auditor ISA" oninput="autoSave()"></div>
+      <div class="id-field"><label>Município / UF</label><input id="f-municipio" type="text" placeholder="Cidade — UF" oninput="autoSave()"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PROGRESSO ══════════════════════════════════════════ -->
+<div class="prog-bar">
+  <div class="prog-inner">
+    <div class="pills">
+      <div class="pill sim" onclick="filtrar('sim',null)">✓ <span id="cnt-sim">0</span> Sim</div>
+      <div class="pill nao" onclick="filtrar('nao',null)">✗ <span id="cnt-nao">0</span> Não</div>
+      <div class="pill na"  onclick="filtrar('na',null)">◌ <span id="cnt-na">0</span> N/A</div>
+      <div class="pill pend" onclick="filtrar('pend',null)">⏳ <span id="cnt-pend">0</span> Pendentes</div>
+      <div class="pill tot">☰ <span id="cnt-tot">0</span> Total</div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+    <div class="prog-pct" id="prog-pct">0%</div>
+  </div>
+</div>
+
+<!-- ═══ BOTÕES ═════════════════════════════════════════════ -->
+<div class="actions">
+  <button class="btn btn-out" onclick="limparTudo()">🗑 Limpar respostas</button>
+</div>
+
+<!-- ═══ CHECKLIST ══════════════════════════════════════════ -->
+<div class="main" id="root"></div>
+
+<!-- ═══ ASSINATURA SALVA ═══════════════════════════════════ -->
+<div class="main" style="padding-top:0;" id="sig-area" style="display:none"></div>
+
+<!-- ═══ LEGENDA ════════════════════════════════════════════ -->
+<div class="legenda">
+  <div class="leg-inner">
+    <span class="leg-lbl">Legenda</span>
+    <div class="leg-i"><span class="leg-d" style="background:#1D4ED8"></span>R = Requisito obrigatório</div>
+    <div class="leg-i"><span class="leg-d" style="background:#065F46"></span>M = Melhoria contínua</div>
+    <div class="leg-i"><span class="leg-d" style="background:var(--green)"></span>Sim = Conforme</div>
+    <div class="leg-i"><span class="leg-d" style="background:var(--red)"></span>Não = Não conforme</div>
+    <div class="leg-i"><span class="leg-d" style="background:var(--pur)"></span>N/A = Não aplicável</div>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═════════════════════════════════════════════ -->
+<div class="footer">
+  <p><strong>ISA Saúde</strong> &nbsp;·&nbsp; Instrumento de Avaliação — Home Care &nbsp;·&nbsp; Versão 2026 &nbsp;·&nbsp; Documento de uso interno</p>
+</div>
+
+<!-- ═══ PAINEL ARQUIVOS ════════════════════════════════════ -->
+<div class="overlay" id="overlay" onclick="fecharPaineis()"></div>
+<div class="arquivos-panel" id="arq-panel">
+  <div class="arq-header">
+    <h3>🗂 Arquivos Salvos <button class="arq-close" onclick="fecharPaineis()">×</button></h3>
+    <p>Checklists salvos neste dispositivo</p>
+  </div>
+  <div class="arq-body" id="arq-lista"></div>
+  <div class="arq-footer">
+    <button class="arq-novo-btn" onclick="novoChecklist()">＋ Novo Checklist em branco</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL ASSINATURA ═══════════════════════════════════ -->
+<div class="modal" id="modal-sig">
+  <div class="modal-bg" onclick="fecharModal('modal-sig')"></div>
+  <div class="modal-box">
+    <h3>✍️ Assinatura Digital</h3>
+    <p>Assine com o mouse ou dedo (toque) para validar o documento</p>
+    <canvas class="sig-canvas" id="sig-canvas" width="460" height="160"></canvas>
+    <div class="modal-actions">
+      <button class="m-btn sec" onclick="limparAssinatura()">🗑 Limpar</button>
+      <button class="m-btn sec" onclick="fecharModal('modal-sig')">Cancelar</button>
+      <button class="m-btn pri" onclick="salvarAssinatura()">✓ Confirmar Assinatura</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL QR ═══════════════════════════════════════════ -->
+<div class="modal" id="modal-qr">
+  <div class="modal-bg" onclick="fecharModal('modal-qr')"></div>
+  <div class="modal-box qr-modal-box">
+    <h3>📷 QR Code — ISA Saúde</h3>
+    <p>Aponte a câmera para acessar este checklist</p>
+    <div id="qr-container"></div>
+    <p class="qr-url" id="qr-url"></p>
+    <div class="modal-actions" style="justify-content:center">
+      <button class="m-btn pri" onclick="downloadQR()">⬇ Baixar QR Code</button>
+      <button class="m-btn sec" onclick="fecharModal('modal-qr')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOAST ══════════════════════════════════════════════ -->
+<div class="toast" id="toast-area"></div>
+
+<!-- ═══ SCRIPT ═════════════════════════════════════════════ -->
+<script>
+const STORAGE_KEY = 'isa_checklists_2026';
+const data=[
+  {id:"1",title:"Seção 1 — Condições Organizacionais",subsections:[
+    {id:"1.1",title:"1.1 Gestão da Documentação Legal",items:[
+      {id:"1.1.1",t:"R",r:"Alvará sanitário",o:"Alvará ou protocolo de solicitação (RDC Nº 63/2011)"},
+      {id:"1.1.2",t:"R",r:"Alvará de localização",o:"Legislação Municipal e Estadual"},
+      {id:"1.1.3",t:"R",r:"Alvará do corpo de bombeiros",o:"LEI 13.425/2017 e legislação estadual"},
+      {id:"1.1.4",t:"R",r:"Licença ambiental",o:"ANVISA - RDC nº 222/2018"},
+      {id:"1.1.5",t:"R",r:"Anotações de responsabilidade técnica (ART)",o:"RDC 63/2011 / Res. CFM 1.980/2011 / Res. Cofen 727/2023"},
+      {id:"1.1.6",t:"R",r:"Cadastro Nacional Estabelecimento Saúde (CNES)",o:"Portaria 1.646/2015 — verificar atualização"},
+      {id:"1.1.7",t:"R",r:"Escalas médicas e da equipe multiprofissional",o:""},
+      {id:"1.1.8",t:"R",r:"Registro no NOTIVISA",o:"RDC Nº 36/2013"},
+    ]},
+    {id:"1.2",title:"1.2 Processos Gerenciais",items:[
+      {id:"1.2.1", t:"R",r:"Regimento interno ou documento equivalente",o:"Descrição de todas as atividades técnicas, administrativas e assistenciais"},
+      {id:"1.2.2", t:"R",r:"Garantia de continuidade da atenção ao paciente",o:"RDC Nº 63/2011"},
+      {id:"1.2.3", t:"R",r:"Controle de acesso dos trabalhadores",o:"RDC 63/2011"},
+      {id:"1.2.4", t:"R",r:"Programa de treinamento introdutório e educação continuada",o:"RDC 50 - Cap. 6.1"},
+      {id:"1.2.5", t:"R",r:"Certificado de especialista na área",o:"TO, Fono, Fisio, Psiquiatria, Nutrição etc."},
+      {id:"1.2.6", t:"R",r:"Protocolos, diretrizes clínicas, normas e rotinas atualizadas",o:"RDC 36/2013"},
+      {id:"1.2.7", t:"R",r:"Infraestrutura e utilização de ferramenta de TI",o:"Res. CFM 1.821/07 / Res. CFM Nº 2.218/2018"},
+      {id:"1.2.8", t:"R",r:"Prontuário eletrônico integrado",o:"Res. CFM Nº 2.218/2018"},
+      {id:"1.2.9", t:"R",r:"Pesquisa de satisfação do cliente (E)",o:""},
+      {id:"1.2.10",t:"R",r:"Tratamento de manifestações de clientes e acompanhantes (E)",o:"Decreto Nº 11.034/2022 / RDC 63/2011"},
+      {id:"1.2.11",t:"R",r:"Consentimento Informado (E)",o:"CFM 1/16"},
+    ]},
+    {id:"1.3",title:"1.3 Gestão da Segurança",items:[
+      {id:"1.3.1",t:"R",r:"Programa de Gerenciamento de Resíduos de Serviços de Saúde (PGRSS)",o:"RDC Anvisa 222/2018"},
+      {id:"1.3.3",t:"R",r:"Programa de Controle Médico e Saúde Ocupacional (PCMSO)",o:"NR 7 — Portaria MTB 3.214/1978"},
+      {id:"1.3.4",t:"R",r:"Programa de Gerenciamento de Riscos (PGR)",o:"NR 1 — Portaria MTB 3.214/1978"},
+      {id:"1.3.5",t:"R",r:"Controle vacinal dos colaboradores",o:"NR 7 — Portaria MTB 3.214/1978"},
+      {id:"1.3.6",t:"R",r:"Controle de pragas (dedetização e desratização)",o:"RDC 63/2011"},
+    ]},
+    {id:"1.4",title:"1.4 Certificações",items:[
+      {id:"1.4.1",t:"R",r:"Certificação ISO 9001:2015 / ISO 14001 / ISO 31000",o:"Res. Nº 510/2016"},
+      {id:"1.4.2",t:"R",r:"Certificação ONA Nível I",o:"Res. Nº 510/2016"},
+      {id:"1.4.3",t:"R",r:"Certificação ONA Nível II",o:"Res. Nº 510/2016"},
+      {id:"1.4.4",t:"R",r:"Certificação ONA Nível III",o:"Res. Nº 510/2016"},
+      {id:"1.4.5",t:"R",r:"Certificação JCI",o:"Res. Nº 510/2016"},
+      {id:"1.4.6",t:"R",r:"Certificação ou acreditação específica para o tipo de serviço",o:"Especificar"},
+    ]},
+    {id:"1.5",title:"1.5 Serviço de Arquivo",items:[
+      {id:"1.5.1",t:"R",r:"Controle de umidade e temperatura",o:"UR 45–55% / Temperatura 20ºC ±1ºC"},
+      {id:"1.5.2",t:"M",r:"Dimensionamento adequado às necessidades",o:"Prateleiras não de madeira, espaçamento correto"},
+      {id:"1.5.3",t:"M",r:"Estrutura física adequada",o:"Acesso restrito, paredes claras, piso lavável, proteção solar"},
+      {id:"1.5.4",t:"R",r:"Acesso controlado ao arquivo",o:"Res. CFM N°1821"},
+      {id:"1.5.5",t:"R",r:"Rastreabilidade do prontuário de pacientes",o:"Registros físicos ou eletrônicos de saída e empréstimos"},
+      {id:"1.5.6",t:"R",r:"Realiza auditoria no fornecedor de arquivo",o:"Se terceirizado"},
+    ]},
+    {id:"1.6",title:"1.6 Núcleo de Segurança do Paciente",items:[
+      {id:"1.6.1",t:"R",r:"Formalização do Núcleo de Segurança do Paciente",o:"RDC Nº 36/2013 — ato de nomeação, regimento, cronograma"},
+      {id:"1.6.2",t:"R",r:"Plano de Segurança do Paciente documentado",o:"RDC Nº 36/2013"},
+      {id:"1.6.3",t:"R",r:"Medidas práticas de prevenção de IRAS",o:"Protocolos baseados em evidências — RDC 36/2013"},
+      {id:"1.6.4",t:"R",r:"Sistema de indicadores de performance e desfecho clínico",o:"RDC 36/2013"},
+      {id:"1.6.5",t:"", r:"Sistema de monitoramento de indicadores (equipe multiprofissional)",o:"RDC 36/2013"},
+      {id:"1.6.6",t:"R",r:"Notifica eventos adversos infecciosos e não infecciosos",o:"RDC 36/2013"},
+      {id:"1.6.7",t:"", r:"Protocolos de eventos adversos",o:"Reações a contrastes, látex — RDC 36/2013"},
+      {id:"1.6.8",t:"R",r:"Protocolos, normas e rotinas técnicas atualizadas",o:"RDC Nº 36/2013"},
+    ]},
+    {id:"1.7",title:"1.7 Indicadores de Valor",items:[
+      {id:"1.7.1",t:"R",r:"Higiene das mãos — indicadores de consumo de álcool e sabonete",o:"RDC 36/2013"},
+      {id:"1.7.2",t:"R",r:"Segurança no uso de equipamentos e materiais",o:"RDC 36/2013"},
+      {id:"1.7.3",t:"R",r:"Prevenção de quedas",o:"RDC 36/2013"},
+      {id:"1.7.4",t:"R",r:"Adesão aos protocolos clínicos",o:"FENAFISIO, 2017; CFN Nº 600/2018"},
+      {id:"1.7.5",t:"R",r:"Taxa de mortalidade — modalidade internação domiciliar",o:"RDC Nº 11/2006"},
+      {id:"1.7.6",t:"R",r:"Taxa de internação após atenção domiciliar",o:"RDC Nº 11/2006"},
+      {id:"1.7.7",t:"R",r:"Taxa de infecção — modalidade internação domiciliar",o:"RDC Nº 11/2006"},
+      {id:"1.7.8",t:"R",r:"Taxa de alta da modalidade assistência domiciliar",o:"RDC Nº 11/2006"},
+    ]},
+    {id:"1.8",title:"1.8 Equipe Multiprofissional de Atenção Domiciliar (EMAD)",items:[
+      {id:"1.8.1", t:"M",r:"Médico",o:""},{id:"1.8.2",t:"M",r:"Enfermeiro",o:""},
+      {id:"1.8.3", t:"M",r:"Técnico de Enfermagem",o:""},{id:"1.8.4",t:"M",r:"Psicólogo",o:""},
+      {id:"1.8.5", t:"M",r:"Fonoaudiólogo",o:""},{id:"1.8.6",t:"M",r:"Farmacêutico",o:""},
+      {id:"1.8.7", t:"M",r:"Pediatra",o:""},{id:"1.8.8",t:"M",r:"Fisioterapeuta",o:""},
+      {id:"1.8.9", t:"M",r:"Terapeuta Ocupacional",o:""},{id:"1.8.10",t:"M",r:"Nutricionista",o:""},
+      {id:"1.8.11",t:"M",r:"Assistente Social",o:""},
+    ]},
+  ]},
+  {id:"2",title:"Seção 2 — Atendimento ao Cliente",subsections:[
+    {id:"2.1",title:"2.1 Infraestrutura",items:[
+      {id:"2.1.1", t:"M",r:"Área de recepção para registro de pacientes e sala de espera",o:"LM 7031/96 / RDC 11/06"},
+      {id:"2.1.2", t:"M",r:"Área de trabalho para equipe administrativa",o:"LM 7031/96 / RDC 11/06"},
+      {id:"2.1.3", t:"M",r:"Água para ingestão de fácil acesso aos funcionários",o:"RDC Nº 50/2002"},
+      {id:"2.1.4", t:"M",r:"Sanitários para funcionários e visitantes",o:"RDC Nº 50/2002"},
+      {id:"2.1.5", t:"M",r:"Área para guarda de macas e cadeira de rodas",o:""},
+      {id:"2.1.6", t:"M",r:"Copa — conforme NR 24",o:"NR 24"},
+      {id:"2.1.7", t:"M",r:"Vestiário para ambos os sexos",o:"RDC Nº 50/2002"},
+      {id:"2.1.8", t:"M",r:"Área para guarda de pertences de funcionários",o:"RDC Nº 50/2002"},
+      {id:"2.1.9", t:"M",r:"Área de trabalho para a EMAD",o:"LM 7031/96 / RDC 11/06"},
+      {id:"2.1.10",t:"M",r:"Indicação de voltagem e número suficiente de tomadas",o:"RDC Nº 50/2002"},
+      {id:"2.1.11",t:"M",r:"Local apropriado para guarda de produtos de limpeza (DML)",o:"RDC Nº 50/2002"},
+      {id:"2.1.12",t:"M",r:"Acabamento do piso (Tipo A ≥ 60%)",o:""},
+      {id:"2.1.13",t:"M",r:"Acabamento da parede (Tipo A ≥ 60%)",o:""},
+    ]},
+    {id:"2.2",title:"2.2 Procedimentos",items:[
+      {id:"2.2.1", t:"M",r:"Atenção domiciliar indicada por profissional de saúde",o:"RDC 11/06"},
+      {id:"2.2.2", t:"M",r:"Relatório detalhado do profissional sobre condições do paciente",o:"RDC 11/06"},
+      {id:"2.2.3", t:"M",r:"Plano de atenção domiciliar (PAD) elaborado para cada paciente",o:"RDC Nº 11/2006"},
+      {id:"2.2.4", t:"M",r:"Sistema de comunicação para acionamento em urgências",o:"RDC 11/06"},
+      {id:"2.2.5", t:"M",r:"Garantia de remoção ou retorno à internação em urgências",o:""},
+      {id:"2.2.6", t:"M",r:"Serviços básicos de retaguarda conforme PAD",o:"RDC 11/06"},
+      {id:"2.2.7", t:"M",r:"Suportes diagnósticos e terapêuticos (lab, imagem, quimio, diálise etc.)",o:"RDC 11/06"},
+      {id:"2.2.8", t:"M",r:"Prontuário domiciliar com registro de todas as atividades",o:"RDC 11/06"},
+      {id:"2.2.9", t:"M",r:"Programa de Prevenção e Controle de Infecções (PCPIEA)",o:"RDC 11/06"},
+      {id:"2.2.10",t:"M",r:"Assistência respiratória com equipamentos e gases medicinais",o:"RDC 11/06"},
+    ]},
+  ]},
+  {id:"3",title:"Seção 3 — Abastecimento e Apoio",subsections:[
+    {id:"3.1",title:"3.1 Gestão de Fornecedores e Compras",items:[
+      {id:"3.1.1",t:"R",r:"Lista de fornecedores",o:"ONA 2022"},
+      {id:"3.1.2",t:"R",r:"Qualificação de fornecedores",o:"ONA 2022"},
+      {id:"3.1.3",t:"R",r:"Avaliação de desempenho de fornecedores",o:"ONA 2022"},
+    ]},
+    {id:"3.2",title:"3.2 Almoxarifado",items:[
+      {id:"3.2.1",t:"R",r:"Controle de temperatura e umidade (termohigrômetro calibrado)",o:"Temp. 21–25ºC / Umidade 40–60%"},
+      {id:"3.2.2",t:"M",r:"Condições de estocagem adequadas",o:"Prateleiras laváveis, sem paletes de madeira, extintor"},
+      {id:"3.2.3",t:"R",r:"Controle de validade dos itens",o:""},
+      {id:"3.2.4",t:"R",r:"Controle de estoque — entrada, saída, inventário e rastreabilidade",o:""},
+    ]},
+    {id:"3.3",title:"3.3 Farmácia",items:[
+      {id:"3.3.1",t:"R",r:"Controle de temperatura e umidade",o:"RDC Nº 67/2007"},
+      {id:"3.3.2",t:"R",r:"Rastreabilidade de lote por paciente",o:"RDC Nº 67/2007"},
+      {id:"3.3.3",t:"R",r:"Condições de estocagem adequadas",o:"RDC Nº 67/2007"},
+      {id:"3.3.4",t:"M",r:"Controle de medicamento controlado",o:"RDC Nº 67/2007"},
+      {id:"3.3.5",t:"R",r:"Manual de diluição, dosagem e conservação de medicamentos",o:"RDC Nº 67/2007"},
+      {id:"3.3.6",t:"R",r:"Define interações medicamentosas",o:"RDC Nº 67/2007"},
+      {id:"3.3.7",t:"M",r:"Controle de validade dos itens",o:"RDC Nº 67/2007"},
+      {id:"3.3.8",t:"M",r:"Farmácia clínica (análise de prescrições, drogas críticas)",o:"RDC Nº 67/2007"},
+    ]},
+    {id:"3.4",title:"3.4 CME — Central de Materiais Esterilizados",items:[
+      {id:"3.4.1", t:"M",r:"Área física adequada (setor sujo, limpo, armazenamento)",o:"RDC Nº 15/2012"},
+      {id:"3.4.2", t:"M",r:"Qualificação térmica das autoclaves anualmente",o:"RDC Nº 15/2012"},
+      {id:"3.4.3", t:"M",r:"Testes biológicos diários",o:"RDC Nº 15/2012"},
+      {id:"3.4.4", t:"M",r:"Pacote teste desafio com integradores químicos (classe 5 ou 6)",o:"RDC Nº 15/2012"},
+      {id:"3.4.5", t:"M",r:"Bowie e Dick no primeiro ciclo (autoclave a vácuo)",o:"RDC Nº 15/2012"},
+      {id:"3.4.6", t:"M",r:"Controle de validade de pacotes (7 dias, íntegros e secos)",o:"RDC Nº 15/2012"},
+      {id:"3.4.7", t:"M",r:"Monitoramento dos desinfetantes para artigos semicríticos",o:""},
+      {id:"3.4.8", t:"M",r:"Estoque fechado com controle de temperatura e umidade",o:"RDC Nº 15/2012"},
+      {id:"3.4.9", t:"M",r:"Alvará sanitário do Serviço de Esterilização (se terceirizado)",o:""},
+      {id:"3.4.10",t:"M",r:"Auditoria no fornecedor CME (se terceirizado)",o:""},
+    ]},
+    {id:"3.5",title:"3.5 Manutenção de Equipamentos",items:[
+      {id:"3.5.1",t:"R",r:"Equipamentos cadastrados (cobertura > 80%)",o:"RDC Nº 63/2011"},
+      {id:"3.5.2",t:"R",r:"Programa anual de calibração",o:"RDC Nº 63/2011"},
+      {id:"3.5.3",t:"R",r:"Programa anual de manutenção preventiva",o:"RDC Nº 63/2011"},
+      {id:"3.5.4",t:"R",r:"Programa anual de manutenção corretiva",o:"RDC Nº 63/2011"},
+      {id:"3.5.5",t:"R",r:"Evidência de registro na ANVISA dos equipamentos",o:""},
+    ]},
+    {id:"3.6",title:"3.6 Manutenção Predial",items:[
+      {id:"3.6.1",t:"R",r:"Programa anual de manutenção preventiva predial",o:"RDC Nº 63/2011"},
+      {id:"3.6.2",t:"R",r:"Programa de manutenção corretiva da estrutura",o:"RDC Nº 63/2011"},
+      {id:"3.6.4",t:"R",r:"Controle de cilindros de gases",o:""},
+      {id:"3.6.5",t:"R",r:"Controle da qualidade da água",o:"Limpeza de reservatórios"},
+      {id:"3.6.6",t:"R",r:"Controle do sistema contra incêndio",o:""},
+    ]},
+    {id:"3.7",title:"3.7 Higienização",items:[
+      {id:"3.7.1",t:"M",r:"Condições de limpeza e desinfecção adequadas",o:"Técnica unidirecional, sem rodo de madeira"},
+      {id:"3.7.2",t:"R",r:"Diluição controlada de saneantes (desinfetantes e germicidas)",o:"ABNT NBR 14725:2023"},
+    ]},
+  ]},
+];
+
+// ── Estado global ──────────────────────────────────────────
+let state={}, obsState={}, total=0, autoSaveTimer=null, sigData=null;
+let currentFilter='todos', currentSearch='';
+let currentArqId = null;
+
+// ── Build ──────────────────────────────────────────────────
+function build(){
+  const root=document.getElementById('root');
+  let h='';
+  data.forEach(sec=>{
+    h+=`<div class="section" id="s-${sec.id}">
+      <div class="sec-hdr" onclick="tog('s-${sec.id}')">
+        <div class="sec-hdr-l">
+          <span class="sec-num">SEÇÃO ${sec.id}</span>
+          <span class="sec-ttl">${sec.title.split('—')[1]?.trim()||sec.title}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sec-prog" id="sp-${sec.id}">0/0</span>
+          <span class="sec-chev">▼</span>
+        </div>
+      </div>
+      <div class="sec-body">`;
+    sec.subsections.forEach(sub=>{
+      h+=`<div class="subsec">
+        <div class="sub-hdr"><span class="sub-dot"></span><span class="sub-ttl">${sub.title}</span></div>
+        <table><thead class="t-head"><tr>
+          <th style="width:60px">Item</th>
+          <th style="width:50px" class="c">Tipo</th>
+          <th>Requisito / Verificar</th>
+          <th style="width:54px" class="c">Sim</th>
+          <th style="width:54px" class="c">Não</th>
+          <th style="width:54px" class="c">N/A</th>
+          <th style="min-width:170px">Observações</th>
+        </tr></thead><tbody>`;
+      sub.items.forEach(i=>{
+        total++; state[i.id]=null; obsState[i.id]='';
+        h+=`<tr class="row" id="r-${i.id}" data-tipo="${i.t}" data-req="${i.r.toLowerCase()}">
+          <td class="num">${i.id}</td>
+          <td class="tip">${i.t?`<span class="badge ${i.t}">${i.t}</span>`:''}</td>
+          <td class="req">${i.r}${i.o?`<span class="ref">${i.o}</span>`:''}</td>
+          <td class="chk"><div class="cbtn" id="bs-${i.id}" onclick="mark('${i.id}','sim')">✓</div></td>
+          <td class="chk"><div class="cbtn" id="bn-${i.id}" onclick="mark('${i.id}','nao')">✗</div></td>
+          <td class="chk"><div class="cbtn" id="ba-${i.id}" onclick="mark('${i.id}','na')">N/A</div></td>
+          <td class="obs"><input type="text" placeholder="Observações…" id="ob-${i.id}" oninput="obsChange('${i.id}',this.value)"></td>
+        </tr>`;
+      });
+      h+='</tbody></table></div>';
+    });
+    h+='</div></div>';
+  });
+  root.innerHTML=h;
+  document.getElementById('cnt-tot').textContent=total;
+  updProg(); updSec();
+}
+
+function obsChange(id,val){ obsState[id]=val; scheduleAutoSave(); }
+
+function mark(id,val){
+  const prev=state[id];
+  if(prev===val){ state[id]=null; document.getElementById('r-'+id).className='row'; ['bs','bn','ba'].forEach(p=>document.getElementById(p+'-'+id).className='cbtn'); }
+  else{
+    state[id]=val;
+    const cls=val==='sim'?'ok':val==='nao'?'no':'na';
+    document.getElementById('r-'+id).className='row '+cls;
+    ['sim','nao','na'].forEach(v=>{ const p=v==='sim'?'bs':v==='nao'?'bn':'ba'; document.getElementById(p+'-'+id).className=v===val?'cbtn '+v:'cbtn'; });
+  }
+  updProg(); updSec(); applyFilter(); scheduleAutoSave();
+}
+
+function updProg(){
+  const sim=Object.values(state).filter(v=>v==='sim').length;
+  const nao=Object.values(state).filter(v=>v==='nao').length;
+  const na=Object.values(state).filter(v=>v==='na').length;
+  const pend=total-(sim+nao+na);
+  const pct=total>0?Math.round((sim+nao+na)/total*100):0;
+  document.getElementById('cnt-sim').textContent=sim;
+  document.getElementById('cnt-nao').textContent=nao;
+  document.getElementById('cnt-na').textContent=na;
+  document.getElementById('cnt-pend').textContent=pend;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+}
+
+function updSec(){
+  data.forEach(sec=>{
+    let t=0,a=0;
+    sec.subsections.forEach(s=>s.items.forEach(i=>{t++;if(state[i.id]!==null)a++;}));
+    const el=document.getElementById('sp-'+sec.id);
+    if(el) el.textContent=a+'/'+t;
+  });
+}
+
+// ── Filtro ─────────────────────────────────────────────────
+function filtrar(tipo, btn){
+  currentFilter=tipo;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  applyFilter();
+}
+
+function buscar(val){ currentSearch=val.toLowerCase(); applyFilter(); }
+
+function applyFilter(){
+  document.querySelectorAll('tr.row').forEach(row=>{
+    const id=row.id.replace('r-','');
+    const s=state[id]; const tipo=row.dataset.tipo; const req=row.dataset.req;
+    let show=true;
+    if(currentFilter==='sim')  show=s==='sim';
+    else if(currentFilter==='nao') show=s==='nao';
+    else if(currentFilter==='na')  show=s==='na';
+    else if(currentFilter==='pend') show=s===null;
+    else if(currentFilter==='R') show=tipo==='R';
+    else if(currentFilter==='M') show=tipo==='M';
+    if(show && currentSearch) show=req.includes(currentSearch);
+    row.classList.toggle('hidden-row',!show);
+  });
+}
+
+// ── Arquivos / LocalStorage ────────────────────────────────
+function getArquivos(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY))||[]; }catch(e){ return []; } }
+function setArquivos(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+function getFormData(){
+  return {
+    entidade: document.getElementById('f-entidade').value,
+    diretor:  document.getElementById('f-diretor').value,
+    conselho: document.getElementById('f-conselho').value,
+    data:     document.getElementById('f-data').value,
+    auditor:  document.getElementById('f-auditor').value,
+    municipio:document.getElementById('f-municipio').value,
+  };
+}
+
+function setFormData(d){
+  if(!d) return;
+  document.getElementById('f-entidade').value = d.entidade||'';
+  document.getElementById('f-diretor').value  = d.diretor||'';
+  document.getElementById('f-conselho').value = d.conselho||'';
+  document.getElementById('f-data').value     = d.data||'';
+  document.getElementById('f-auditor').value  = d.auditor||'';
+  document.getElementById('f-municipio').value= d.municipio||'';
+}
+
+function salvarAgora(){
+  const arquivos = getArquivos();
+  const form = getFormData();
+  const nome = form.entidade || 'Sem nome';
+  const sim=Object.values(state).filter(v=>v==='sim').length;
+  const pct=total>0?Math.round((sim)/total*100):0;
+
+  if(currentArqId){
+    const idx=arquivos.findIndex(a=>a.id===currentArqId);
+    if(idx>=0){
+      arquivos[idx]={...arquivos[idx], nome, form, state:{...state}, obs:{...obsState}, sig:sigData, pct, updatedAt:new Date().toISOString()};
+      setArquivos(arquivos);
+      toast('✅ Salvo com sucesso!','success');
+      return;
+    }
+  }
+  const novo={id:'arq_'+Date.now(), nome, form, state:{...state}, obs:{...obsState}, sig:sigData, pct, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString()};
+  arquivos.unshift(novo);
+  setArquivos(arquivos);
+  currentArqId=novo.id;
+  toast('✅ Checklist salvo!','success');
+}
+
+function scheduleAutoSave(){
+  clearTimeout(autoSaveTimer);
+  document.getElementById('autosave-txt').textContent='Salvando…';
+  autoSaveTimer=setTimeout(()=>{ salvarAgora(); document.getElementById('autosave-txt').textContent='Salvo automaticamente'; }, 2000);
+}
+
+function autoSave(){ scheduleAutoSave(); }
+
+function abrirArquivos(){
+  renderArquivos();
+  document.getElementById('arq-panel').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function renderArquivos(){
+  const lista=document.getElementById('arq-lista');
+  const arquivos=getArquivos();
+  if(!arquivos.length){
+    lista.innerHTML=`<div class="arq-empty"><div class="icon">📂</div><p>Nenhum checklist salvo ainda.</p><p style="margin-top:8px;font-size:12px;">Preencha e clique em <strong>Salvar</strong>.</p></div>`;
+    return;
+  }
+  lista.innerHTML=arquivos.map(a=>{
+    const d=new Date(a.updatedAt).toLocaleDateString('pt-BR');
+    const h=new Date(a.updatedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const ativo=a.id===currentArqId?'ativo':'';
+    return `<div class="arq-item ${ativo}" id="arq-${a.id}">
+      <div class="arq-item-ttl">${a.nome}</div>
+      <div class="arq-item-sub">${a.form?.municipio||'—'} &nbsp;·&nbsp; ${d} às ${h}</div>
+      <div class="arq-item-prog">
+        <span style="font-size:11px;font-weight:700;color:#233E72">${a.pct||0}% concluído</span>
+        <div class="arq-item-bar"><div class="arq-item-fill" style="width:${a.pct||0}%"></div></div>
+      </div>
+      <div class="arq-item-actions">
+        <button class="arq-mini-btn load" onclick="carregarArquivo('${a.id}')">📂 Abrir</button>
+        <button class="arq-mini-btn del"  onclick="deletarArquivo('${a.id}')">🗑 Excluir</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function carregarArquivo(id){
+  const arq=getArquivos().find(a=>a.id===id);
+  if(!arq) return;
+  currentArqId=id;
+  setFormData(arq.form);
+  // restaurar state
+  Object.keys(state).forEach(k=>{ state[k]=null; obsState[k]=''; });
+  Object.assign(state, arq.state||{});
+  Object.assign(obsState, arq.obs||{});
+  // restaurar UI
+  Object.entries(state).forEach(([k,v])=>{
+    if(!v) return;
+    const cls=v==='sim'?'ok':v==='nao'?'no':'na';
+    const row=document.getElementById('r-'+k);
+    if(row) row.className='row '+cls;
+    ['sim','nao','na'].forEach(vv=>{ const p=vv==='sim'?'bs':vv==='nao'?'bn':'ba'; const el=document.getElementById(p+'-'+k); if(el) el.className=vv===v?'cbtn '+v:'cbtn'; });
+  });
+  Object.entries(obsState).forEach(([k,v])=>{ const el=document.getElementById('ob-'+k); if(el) el.value=v||''; });
+  if(arq.sig){ sigData=arq.sig; mostrarSigSalva(); }
+  updProg(); updSec(); applyFilter();
+  fecharPaineis();
+  toast('📂 Checklist carregado!','success');
+}
+
+function deletarArquivo(id){
+  if(!confirm('Excluir este checklist salvo?')) return;
+  const novos=getArquivos().filter(a=>a.id!==id);
+  setArquivos(novos);
+  if(currentArqId===id) currentArqId=null;
+  renderArquivos();
+  toast('🗑 Excluído.','');
+}
+
+function novoChecklist(){
+  if(!confirm('Criar um novo checklist em branco? O atual não será perdido se já foi salvo.')) return;
+  currentArqId=null;
+  setFormData({});
+  Object.keys(state).forEach(k=>{ state[k]=null; obsState[k]=''; });
+  document.querySelectorAll('tr.row').forEach(r=>{ r.className='row'; });
+  document.querySelectorAll('.cbtn').forEach(b=>{ b.className='cbtn'; });
+  document.querySelectorAll('td.obs input').forEach(i=>{ i.value=''; });
+  sigData=null;
+  document.getElementById('sig-area').innerHTML='';
+  updProg(); updSec();
+  fecharPaineis();
+  toast('✨ Novo checklist criado!','success');
+}
+
+function fecharPaineis(){
+  document.getElementById('arq-panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ── Assinatura ─────────────────────────────────────────────
+let drawing=false, sigCtx=null;
+function abrirAssinatura(){
+  document.getElementById('modal-sig').classList.add('show');
+  const canvas=document.getElementById('sig-canvas');
+  sigCtx=canvas.getContext('2d');
+  sigCtx.strokeStyle='#233E72'; sigCtx.lineWidth=2.5; sigCtx.lineCap='round';
+  canvas.addEventListener('mousedown', e=>{drawing=true; sigCtx.beginPath(); sigCtx.moveTo(e.offsetX,e.offsetY);});
+  canvas.addEventListener('mousemove', e=>{if(!drawing)return; sigCtx.lineTo(e.offsetX,e.offsetY); sigCtx.stroke();});
+  canvas.addEventListener('mouseup', ()=>drawing=false);
+  canvas.addEventListener('mouseleave',()=>drawing=false);
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const t=e.touches[0];const r=canvas.getBoundingClientRect();sigCtx.beginPath();sigCtx.moveTo(t.clientX-r.left,t.clientY-r.top);},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const t=e.touches[0];const r=canvas.getBoundingClientRect();sigCtx.lineTo(t.clientX-r.left,t.clientY-r.top);sigCtx.stroke();},{passive:false});
+  canvas.addEventListener('touchend',()=>drawing=false);
+}
+function limparAssinatura(){ if(sigCtx){ const c=document.getElementById('sig-canvas'); sigCtx.clearRect(0,0,c.width,c.height); } }
+function salvarAssinatura(){
+  const canvas=document.getElementById('sig-canvas');
+  sigData=canvas.toDataURL('image/png');
+  mostrarSigSalva();
+  fecharModal('modal-sig');
+  toast('✍️ Assinatura salva!','success');
+  scheduleAutoSave();
+}
+function mostrarSigSalva(){
+  if(!sigData) return;
+  const area=document.getElementById('sig-area');
+  const d=new Date().toLocaleString('pt-BR');
+  area.innerHTML=`<div style="background:white;border:1px solid #ddd;border-radius:10px;padding:16px;margin-bottom:20px;">
+    <p style="font-family:Montserrat;font-size:10px;font-weight:800;color:#233E72;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">✍️ Assinatura Digital</p>
+    <img src="${sigData}" style="max-width:300px;border:1px solid #eee;border-radius:6px;display:block;">
+    <p style="font-size:11px;color:#6B7280;margin-top:6px;">Assinado em ${d}</p>
+  </div>`;
+}
+
+// ── QR Code ────────────────────────────────────────────────
+function abrirQR(){
+  document.getElementById('modal-qr').classList.add('show');
+  const url=window.location.href;
+  document.getElementById('qr-url').textContent=url;
+  const container=document.getElementById('qr-container');
+  container.innerHTML='';
+  new QRCode(container,{text:url,width:200,height:200,colorDark:'#233E72',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+}
+function downloadQR(){
+  setTimeout(()=>{
+    const canvas=document.querySelector('#qr-container canvas');
+    if(canvas){ const a=document.createElement('a'); a.download='isa-checklist-qrcode.png'; a.href=canvas.toDataURL('image/png'); a.click(); }
+  },200);
+}
+
+// ── Exportar Excel ─────────────────────────────────────────
+function exportarExcel(){
+  const form=getFormData();
+  const rows=[
+    ['ISA Saúde — Checklist Home Care 2026'],
+    [''],
+    ['Entidade:', form.entidade, '', 'Diretor:', form.diretor],
+    ['Auditor:', form.auditor, '', 'Data:', form.data],
+    ['Município:', form.municipio, '', 'Conselho:', form.conselho],
+    [''],
+    ['Item','Tipo','Requisito','Referência','Situação','Observações'],
+  ];
+  data.forEach(sec=>{
+    rows.push([sec.title,'','','','','']);
+    sec.subsections.forEach(sub=>{
+      rows.push(['',sub.title,'','','','']);
+      sub.items.forEach(i=>{
+        const sit=state[i.id]==='sim'?'✓ SIM':state[i.id]==='nao'?'✗ NÃO':state[i.id]==='na'?'N/A':'Pendente';
+        rows.push([i.id, i.t||'', i.r, i.o||'', sit, obsState[i.id]||'']);
+      });
+    });
+  });
+  const sim=Object.values(state).filter(v=>v==='sim').length;
+  const nao=Object.values(state).filter(v=>v==='nao').length;
+  const na=Object.values(state).filter(v=>v==='na').length;
+  rows.push([''],['RESUMO','','','','','']);
+  rows.push(['Total de itens:',total,'','Conformes (SIM):',sim,'']);
+  rows.push(['Não conformes:',nao,'','N/A:',na,'']);
+  rows.push(['% Conformidade:',total>0?Math.round(sim/total*100)+'%':'0%','','','','']);
+
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:6},{wch:50},{wch:40},{wch:12},{wch:30}];
+  XLSX.utils.book_append_sheet(wb,ws,'Checklist');
+  XLSX.writeFile(wb,'ISA_Saude_Checklist_2026.xlsx');
+  toast('📊 Excel exportado!','success');
+}
+
+// ── Modais / Toasts ────────────────────────────────────────
+function fecharModal(id){ document.getElementById(id).classList.remove('show'); }
+function toast(msg,tipo){
+  const area=document.getElementById('toast-area');
+  const el=document.createElement('div');
+  el.className='toast-item '+(tipo||'');
+  el.textContent=msg;
+  area.appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+
+// ── Misc ───────────────────────────────────────────────────
+function tog(id){ document.getElementById(id).classList.toggle('collapsed'); }
+function expandAll(){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('collapsed')); }
+function collapseAll(){ document.querySelectorAll('.section').forEach(s=>s.classList.add('collapsed')); }
+function limparTudo(){
+  if(!confirm('Limpar todas as respostas desta sessão?')) return;
+  Object.keys(state).forEach(k=>state[k]=null);
+  document.querySelectorAll('tr.row').forEach(r=>r.className='row');
+  document.querySelectorAll('.cbtn').forEach(b=>b.className='cbtn');
+  updProg(); updSec(); applyFilter();
+  toast('🗑 Respostas limpas.','');
+}
+
+// ── Init ───────────────────────────────────────────────────
+build();
+</script>
+</body>
+</html>
